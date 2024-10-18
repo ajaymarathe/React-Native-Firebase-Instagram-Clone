@@ -24,8 +24,6 @@ const PostGrid = ({ posts }) => {
 const styles = StyleSheet.create({
   imageContainer: {
     margin: 1,
-    borderWidth: 0.5,
-    borderColor: 'gray',
   },
   image: {
     resizeMode: 'cover',
