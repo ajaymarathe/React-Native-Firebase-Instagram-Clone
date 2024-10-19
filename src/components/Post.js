@@ -2,13 +2,13 @@ import React from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
 import {Icon} from 'react-native-elements';
 
-const Post = ({username, userImage, postImage, likes, caption, postedAt}) => {
+const Post = ({displayName, userImage, postImage, likes, caption, postedAt}) => {
   return (
     <View style={styles.postContainer}>
-      {/* Header: User Avatar and Username */}
+      {/* Header: User Avatar and displayName */}
       <View style={styles.header}>
         <Image source={{uri: userImage}} style={styles.userImage} />
-        <Text style={styles.username}>{username}</Text>
+        <Text style={styles.username}>{displayName}</Text>
       </View>
 
       {/* Post Image */}
@@ -38,7 +38,7 @@ const Post = ({username, userImage, postImage, likes, caption, postedAt}) => {
 
       {/* Caption */}
       <Text style={styles.caption}>
-        <Text style={styles.username}>{username} </Text>
+        <Text style={styles.username}>{displayName} </Text>
         {caption}
       </Text>
 

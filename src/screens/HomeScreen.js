@@ -1,23 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, FlatList, StyleSheet, ActivityIndicator} from 'react-native';
 import Post from '../components/Post';
 import firestore from '@react-native-firebase/firestore'; // Import Firestore
-import { formatDistanceToNow } from 'date-fns';
+import {formatDistanceToNow} from 'date-fns';
 
 const HomeScreen = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true); // For showing loading indicator while data is being fetched
 
   useEffect(() => {
-    // Function to fetch posts from Firestore
+    // Function to fetch posts and associated user data from Firestore
     const fetchPosts = async () => {
       try {
-        const snapshot = await firestore().collection('posts').orderBy('createdAt', 'desc').get();
-        const postData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setPosts(postData);
+        const postSnapshot = await firestore()
+          .collection('posts')
+          .orderBy('createdAt', 'desc')
+          .get();
+
+        // Array to store promises for fetching user data
+        const postsWithUserDataPromises = postSnapshot.docs.map(async doc => {
+          const postData = doc.data();
+          const userId = postData.userId; // Assuming each post has a userId field
+
+          // Fetch user data from 'users' collection
+          const userSnapshot = await firestore()
+            .collection('users')
+            .doc(userId)
+            .get();
+          const userData = userSnapshot.data();
+
+          // Merge post data with user data
+          return {
+            id: doc.id,
+            ...postData,
+            displayName: userData.displayName,
+            userImage: userData.profilePicture,
+          };
+        });
+
+        // Wait for all the promises to resolve
+        const postsWithUserData = await Promise.all(postsWithUserDataPromises);
+
+        setPosts(postsWithUserData);
         setLoading(false); // Data has been fetched
       } catch (error) {
         console.error('Error fetching posts:', error);
@@ -28,12 +52,11 @@ const HomeScreen = () => {
     fetchPosts();
   }, []);
 
-    // Function to format timestamp into "time ago" using date-fns
-    const formatTimeAgo = (timestamp) => {
-      const postTime = new Date(timestamp.seconds * 1000); // Convert Firestore timestamp to Date object
-      return formatDistanceToNow(postTime, { addSuffix: true }); // Returns "x minutes ago", "y days ago", etc.
-    };
-  
+  // Function to format timestamp into "time ago" using date-fns
+  const formatTimeAgo = timestamp => {
+    const postTime = new Date(timestamp.seconds * 1000); // Convert Firestore timestamp to Date object
+    return formatDistanceToNow(postTime, {addSuffix: true}); // Returns "x minutes ago", "y days ago", etc.
+  };
 
   if (loading) {
     return (
@@ -47,13 +70,13 @@ const HomeScreen = () => {
     <FlatList
       data={posts}
       keyExtractor={item => item.id}
-      renderItem={({ item }) => (
+      renderItem={({item}) => (
         <Post
-          username={item.username}
-          userImage={item.userImage}
-          postImage={item.mediaUrl}
-          likes={item.likesCount}
-          caption={item.caption}
+          displayName={item.displayName} // Username fetched from user data
+          userImage={item.userImage} // User profile picture fetched from user data
+          postImage={item.mediaUrl} // Post media
+          likes={item.likesCount} // Post likes
+          caption={item.caption} // Post caption
           postedAt={formatTimeAgo(item.createdAt)} // Use formatTimeAgo function with date-fns
         />
       )}
