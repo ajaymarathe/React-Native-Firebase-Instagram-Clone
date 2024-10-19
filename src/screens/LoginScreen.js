@@ -1,32 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Image, Alert } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Image,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   useEffect(() => {
     // Configure Google Sign-In
     GoogleSignin.configure({
-      webClientId: '832907094489-7ag3tr45i2p9tkan7pclt4et34h5eg4c.apps.googleusercontent.com', // Example Web Client ID
+      webClientId:
+        '832907094489-7ag3tr45i2p9tkan7pclt4et34h5eg4c.apps.googleusercontent.com', // Example Web Client ID
     });
-    
   }, []);
 
-  const handleLogin = () => {
-    console.log('Logging in with:', email, password);
-    // Handle email/password login logic here
+  const handleLogin = async () => {
+    try {
+      const userCredential = await auth().signInWithEmailAndPassword(
+        email,
+        password,
+      );
+      console.log('User logged in:', userCredential);
+      // Navigate to Home Screen after successful login
+      navigation.navigate('HomeStack');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      Alert.alert('Login Error', error.message);
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (email && password) {
+      try {
+        const userCredential = await auth().createUserWithEmailAndPassword(
+          email,
+          password,
+        );
+        console.log('User signed up:', userCredential);
+        // Navigate to Home Screen after successful sign-up
+        navigation.navigate('HomeStack');
+      } catch (error) {
+        console.error('Error signing up:', error);
+        Alert.alert('Sign-Up Error', error.message);
+      }
+    }
+    return null;
   };
 
   // Google Sign-In handler
   const signInWithGoogle = async () => {
     try {
       // Get the user's ID token from Google
-      const { idToken } = await GoogleSignin.signIn();
+      const {idToken} = await GoogleSignin.signIn();
 
       // Create a Google credential with the token
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
@@ -41,7 +79,10 @@ const LoginScreen = ({ navigation }) => {
       } else if (error.code === statusCodes.IN_PROGRESS) {
         Alert.alert('Login in progress', 'Login is already in progress');
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert('Play Services not available', 'Google Play Services are required for Google Sign-In');
+        Alert.alert(
+          'Play Services not available',
+          'Google Play Services are required for Google Sign-In',
+        );
       } else {
         console.error('Error with Google Sign-In', error);
         Alert.alert('Login error', 'An error occurred during Google Sign-In');
@@ -53,13 +94,15 @@ const LoginScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Instagram logo */}
       <Image
-        source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png' }}
+        source={{
+          uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+        }}
         style={styles.logo}
       />
 
       {/* Email and Password Input */}
       <CustomInput
-        placeholder="Phone number, username, or email"
+        placeholder="Email"
         icon="user"
         value={email}
         setValue={setEmail}
@@ -76,12 +119,17 @@ const LoginScreen = ({ navigation }) => {
       <CustomButton title="Log In" onPress={handleLogin} />
 
       {/* Forgot Password link */}
-      <Text style={styles.forgotPassword} onPress={() => console.log('Forgot Password')}>
+      <Text
+        style={styles.forgotPassword}
+        onPress={() => console.log('Forgot Password')}>
         Forgot Password?
       </Text>
 
       {/* OR Text */}
       <Text style={styles.orText}>OR</Text>
+
+      {/* Sign Up Button */}
+      {/* <CustomButton title="Sign Up with Email" onPress={handleSignUp} /> */}
 
       {/* Google Sign-In Button */}
       <CustomButton
@@ -94,9 +142,9 @@ const LoginScreen = ({ navigation }) => {
       {/* Sign Up link */}
       <View style={styles.signUpContainer}>
         <Text>Don't have an account? </Text>
-        <Text style={styles.signUpText} onPress={() => console.log('Sign Up')}>
-          Sign up.
-        </Text>
+        <TouchableOpacity onPress={handleSignUp}>
+          <Text style={styles.signUpText}>Sign up.</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
