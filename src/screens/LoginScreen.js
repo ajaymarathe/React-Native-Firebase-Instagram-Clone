@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,6 +6,9 @@ import {
   Image,
   Alert,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
@@ -15,7 +18,7 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 
-const LoginScreen = ({navigation}) => {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -60,7 +63,7 @@ const LoginScreen = ({navigation}) => {
   const signInWithGoogle = async () => {
     try {
       // Get the user's ID token from Google
-      const {idToken} = await GoogleSignin.signIn();
+      const { idToken } = await GoogleSignin.signIn();
 
       // Create a Google credential with the token
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
@@ -87,68 +90,74 @@ const LoginScreen = ({navigation}) => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Instagram logo */}
-      <Image
-        source={{
-          uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
-        }}
-        style={styles.logo}
-      />
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+    >
+      <ScrollView contentContainerStyle={styles.innerContainer}>
+        {/* Instagram logo */}
+        <Image
+          source={{
+            uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+          }}
+          style={styles.logo}
+        />
 
-      {/* Email and Password Input */}
-      <CustomInput
-        placeholder="Email"
-        icon="user"
-        value={email}
-        setValue={setEmail}
-      />
-      <CustomInput
-        placeholder="Password"
-        icon="lock"
-        value={password}
-        setValue={setPassword}
-        secureTextEntry
-      />
+        {/* Email and Password Input */}
+        <CustomInput
+          placeholder="Email"
+          icon="user"
+          value={email}
+          setValue={setEmail}
+        />
+        <CustomInput
+          placeholder="Password"
+          icon="lock"
+          value={password}
+          setValue={setPassword}
+          secureTextEntry
+        />
 
-      {/* Login Button */}
-      <CustomButton title="Log In" onPress={handleLogin} />
+        {/* Login Button */}
+        <CustomButton title="Log In" onPress={handleLogin} />
 
-      {/* Forgot Password link */}
-      <Text
-        style={styles.forgotPassword}
-        onPress={() => console.log('Forgot Password')}>
-        Forgot Password?
-      </Text>
+        {/* Forgot Password link */}
+        <Text
+          style={styles.forgotPassword}
+          onPress={() => console.log('Forgot Password')}>
+          Forgot Password?
+        </Text>
 
-      {/* OR Text */}
-      <Text style={styles.orText}>OR</Text>
+        {/* OR Text */}
+        <Text style={styles.orText}>OR</Text>
 
-      {/* Sign Up Button */}
-      {/* <CustomButton title="Sign Up with Email" onPress={handleSignUp} /> */}
+        {/* Google Sign-In Button */}
+        <CustomButton
+          title="Log in with Google"
+          icon="google"
+          backgroundColor="#F2BC05"
+          onPress={signInWithGoogle}
+        />
 
-      {/* Google Sign-In Button */}
-      <CustomButton
-        title="Log in with Google"
-        icon="google"
-        backgroundColor="#F2BC05"
-        onPress={signInWithGoogle}
-      />
-
-      {/* Sign Up link */}
-      <View style={styles.signUpContainer}>
-        <Text>Don't have an account? </Text>
-        <TouchableOpacity onPress={handleSignUp}>
-          <Text style={styles.signUpText}>Sign up.</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        {/* Sign Up link */}
+        <View style={styles.signUpContainer}>
+          <Text>Don't have an account? </Text>
+          <TouchableOpacity onPress={handleSignUp}>
+            <Text style={styles.signUpText}>Sign up.</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  innerContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
