@@ -5,12 +5,12 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {Icon} from 'react-native-elements';
 
 //Screens
-import LoginScreen from './LoginScreen';
-import HomeScreen from './HomeScreen';
-import SearchScreen from './SearchScreen';
-import AddPostStack from '../navigationstacks/AddPostStack';
-import NotificationsScreen from './NotificationScreen';
-import ProfileScreenStack from '../navigationstacks/ProfileScreenStack';
+import LoginScreen from '../screens/LoginScreen';
+import HomeScreen from '../screens/HomeScreen';
+import SearchScreen from '../screens/SearchScreen';
+import AddPostStack from './AddPostStack';
+import NotificationsScreen from '../screens/NotificationScreen';
+import ProfileScreenStack from './ProfileScreenStack';
 
 // Stack and Tab Navigators
 const Stack = createStackNavigator();

@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 // Import the stacks
-import {AuthStack, HomeStack} from './src/screens/NavigationStack';
+import {AuthStack, HomeStack} from './src/navigationstacks/NavigationStack';
 
 const App = () => {
   const [initializing, setInitializing] = useState(true);
@@ -26,7 +26,7 @@ const App = () => {
   return (
     <NavigationContainer>
       {/* If the user is logged in, show the HomeStack, otherwise show the AuthStack */}
-      {user ? <HomeStack /> : <AuthStack />}
+      {!user ? <HomeStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };
