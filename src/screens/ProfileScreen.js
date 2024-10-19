@@ -33,7 +33,7 @@ const mockPosts = [
 
 const ProfileScreen = () => {
   const userProfile = {
-    username: 'john_doe',
+    username: 'Rita Kumari',
     profilePicture: 'https://randomuser.me/api/portraits/women/8.jpg',
     postCount: 120,
     followerCount: 250,

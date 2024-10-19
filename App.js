@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import BottomTabNavigator from './src/components/BottomTabNavigator';
+import BottomTabNavigator from './src/navigationstacks/BottomTabNavigator';
 
 const App = () => {
   return (
@@ -11,3 +11,5 @@ const App = () => {
 };
 
 export default App;
+
+
