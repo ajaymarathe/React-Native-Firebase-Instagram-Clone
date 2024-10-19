@@ -1,13 +1,24 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { Button } from 'react-native-elements';
+import {View, Text, Image, StyleSheet} from 'react-native';
+import {Button} from 'react-native-elements';
 
-const ProfileHeader = ({ username, profilePicture, postCount, followerCount, followingCount, bio, isCurrentUser }) => {
+const ProfileHeader = ({
+  username,
+  profilePicture,
+  postCount,
+  followerCount,
+  followingCount,
+  bio,
+  isCurrentUser,
+}) => {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       {/* Profile Picture */}
       <View style={styles.profilePictureContainer}>
-        <Image source={{ uri: profilePicture }} style={styles.profilePicture} />
+        <Image source={{uri: profilePicture}} style={styles.profilePicture} />
       </View>
 
       {/* User Info */}
@@ -33,6 +44,7 @@ const ProfileHeader = ({ username, profilePicture, postCount, followerCount, fol
             title="Edit Profile"
             buttonStyle={styles.editProfileButton}
             titleStyle={styles.buttonText}
+            onPress={() => navigation.navigate('EditProfile')}
           />
         ) : (
           <Button
@@ -42,7 +54,6 @@ const ProfileHeader = ({ username, profilePicture, postCount, followerCount, fol
           />
         )}
       </View>
-
 
       {/* Bio */}
       <View style={styles.bioContainer}>
@@ -109,12 +120,12 @@ const styles = StyleSheet.create({
   username: {
     fontWeight: 'bold',
     fontSize: 20,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   bio: {
     marginTop: 5,
     color: 'gray',
-    textAlign: 'center'
+    textAlign: 'center',
   },
 });
 

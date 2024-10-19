@@ -32,6 +32,7 @@ const mockPosts = [
 ];
 
 const ProfileScreen = () => {
+
   const userProfile = {
     username: 'Rita Kumari',
     profilePicture: 'https://randomuser.me/api/portraits/women/8.jpg',

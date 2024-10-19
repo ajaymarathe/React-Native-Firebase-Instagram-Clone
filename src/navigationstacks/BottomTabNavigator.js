@@ -8,7 +8,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import AddPostStack from './AddPostStack';
 import NotificationsScreen from '../screens/NotificationScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import ProfileScreenStack from './ProfileScreenStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -40,7 +40,7 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Add" component={AddPostStack} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreenStack} />
     </Tab.Navigator>
   );
 };
