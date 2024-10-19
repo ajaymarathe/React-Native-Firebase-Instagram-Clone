@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
-import {Button} from 'react-native-elements';
+import {Button, Icon} from 'react-native-elements';
 
 const ProfileHeader = ({
   username,
@@ -11,6 +11,7 @@ const ProfileHeader = ({
   followingCount,
   bio,
   isCurrentUser,
+  handleLogout,
 }) => {
   const navigation = useNavigation();
 
@@ -53,6 +54,8 @@ const ProfileHeader = ({
             titleStyle={styles.buttonText}
           />
         )}
+
+        {isCurrentUser && <Icon name="logout" onPress={handleLogout} />}
       </View>
 
       {/* Bio */}
@@ -79,13 +82,13 @@ const styles = StyleSheet.create({
   },
   userInfoContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    flex: 1,
+    flex: 0.8,
   },
   stat: {
     alignItems: 'center',
@@ -103,12 +106,13 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
-    paddingHorizontal: 30,
+    paddingHorizontal: 10,
   },
   followButton: {
     backgroundColor: '#3897f0',
     borderRadius: 5,
     paddingHorizontal: 30,
+    width: 50,
   },
   buttonText: {
     fontSize: 14,

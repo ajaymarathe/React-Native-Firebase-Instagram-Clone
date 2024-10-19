@@ -1,37 +1,37 @@
 import React from 'react';
-import {ScrollView, StyleSheet, Button, Alert, View} from 'react-native';
+import {FlatList, StyleSheet, View, Button, Alert} from 'react-native';
 import ProfileHeader from '../components/ProfileHeader';
 import PostGrid from '../components/PostGrid';
-import auth from '@react-native-firebase/auth'; // Import Firebase Auth
+import auth from '@react-native-firebase/auth';  // Import Firebase Auth
 
 const mockPosts = [
-  {
-    id: '1',
-    image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0',
-  },
-  {
-    id: '2',
-    image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0',
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0',
-  },
-  {
-    id: '4',
-    image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0',
-  },
-  {
-    id: '5',
-    image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0',
-  },
-  {
-    id: '6',
-    image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0',
-  },
+  { id: '1', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
+  { id: '2', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
+  { id: '3', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
+  { id: '4', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
+  { id: '5', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
+  { id: '6', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
 ];
 
-const ProfileScreen = ({navigation}) => {
+// Moved List Header Component outside the ProfileScreen component
+const ProfileListHeader = ({ userProfile, handleLogout }) => {
+  return (
+    <View>
+      <ProfileHeader
+        username={userProfile.username}
+        profilePicture={userProfile.profilePicture}
+        postCount={userProfile.postCount}
+        followerCount={userProfile.followerCount}
+        followingCount={userProfile.followingCount}
+        bio={userProfile.bio}
+        isCurrentUser={userProfile.isCurrentUser}
+        handleLogout={ handleLogout }
+      />
+    </View>
+  );
+};
+
+const ProfileScreen = ({ navigation }) => {
   const userProfile = {
     username: 'Rita Kumari',
     profilePicture: 'https://randomuser.me/api/portraits/women/8.jpg',
@@ -54,28 +54,20 @@ const ProfileScreen = ({navigation}) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Profile Header */}
-      <ProfileHeader
-        username={userProfile.username}
-        profilePicture={userProfile.profilePicture}
-        postCount={userProfile.postCount}
-        followerCount={userProfile.followerCount}
-        followingCount={userProfile.followingCount}
-        bio={userProfile.bio}
-        isCurrentUser={userProfile.isCurrentUser}
+    <View style={styles.container}>
+      {/* Use FlatList to avoid nested VirtualizedList issue */}
+      <FlatList
+        data={mockPosts}
+        keyExtractor={item => item.id}
+        numColumns={3}
+        renderItem={({ item }) => (
+          <PostGrid posts={[item]} />
+        )}
+        ListHeaderComponent={
+          <ProfileListHeader userProfile={userProfile} handleLogout={handleLogout} />
+        }
       />
-
-      {/* Post Grid */}
-      <PostGrid posts={mockPosts} />
-
-      {/* Logout Button (only visible for the current user) */}
-      {userProfile.isCurrentUser && (
-        <View style={styles.logoutButtonContainer}>
-          <Button title="Log Out" onPress={handleLogout} />
-        </View>
-      )}
-    </ScrollView>
+    </View>
   );
 };
 
