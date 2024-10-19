@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "832907094489",
+    "project_id": "react-native-instagram-c-ea3c4",
+    "storage_bucket": "react-native-instagram-c-ea3c4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:832907094489:android:f203700cd3a346c7f8d1c8",
+        "android_client_info": {
+          "package_name": "com.instagramclone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArM5NU07Svx9B_5pchk68azTSV1wyWBwQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
