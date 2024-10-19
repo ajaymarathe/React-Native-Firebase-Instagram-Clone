@@ -1,7 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Image, Button, TouchableOpacity, StyleSheet } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { useNavigation } from '@react-navigation/native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  Button,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {useNavigation} from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage'; // For uploading profile picture
 
 const EditProfileScreen = () => {
   const [profileImage, setProfileImage] = useState(null);
@@ -9,24 +21,92 @@ const EditProfileScreen = () => {
   const [userName, setUserName] = useState('');
   const [website, setWebsite] = useState('');
   const [bio, setBio] = useState('');
+  const [loading, setLoading] = useState(false); // Loading state for save process
 
   const navigation = useNavigation();
+
+  useEffect(() => {
+    // Fetch current user data from Firestore
+    const fetchUserData = async () => {
+      const user = auth().currentUser;
+      if (user) {
+        try {
+          const userDoc = await firestore()
+            .collection('users')
+            .doc(user.uid)
+            .get();
+          if (userDoc.exists) {
+            const userData = userDoc.data();
+            setName(userData.displayName || '');
+            setUserName(userData.username || '');
+            setWebsite(userData.website || '');
+            setBio(userData.bio || '');
+            setProfileImage(
+              userData.profilePicture ||
+                'https://randomuser.me/api/portraits/women/8.jpg',
+            );
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          Alert.alert('Error', 'Failed to fetch user data.');
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const openImagePicker = () => {
     const options = {
       mediaType: 'photo',
     };
-    launchImageLibrary(options, (response) => {
+    launchImageLibrary(options, response => {
       if (response.assets) {
         setProfileImage(response.assets[0].uri);
       }
     });
   };
 
-  const handleSave = () => {
-    // Logic to save profile updates (e.g., send to Firebase or your backend)
-    // For now, we just navigate back to ProfileScreen
-    navigation.navigate('ProfileScreen');
+  const uploadImage = async imageUri => {
+    const user = auth().currentUser;
+    if (user && imageUri) {
+      const reference = storage().ref(`profile_pictures/${user.uid}`);
+      await reference.putFile(imageUri);
+      return await reference.getDownloadURL(); // Return the image URL after upload
+    }
+    return null;
+  };
+
+  const handleSave = async () => {
+    const user = auth().currentUser;
+    if (user) {
+      try {
+        setLoading(true); // Start loading
+        let profileImageUrl = profileImage;
+
+        // Upload the profile image if it has been changed
+        if (profileImage && !profileImage.startsWith('https://')) {
+          profileImageUrl = await uploadImage(profileImage);
+        }
+
+        // Update the user data in Firestore
+        await firestore().collection('users').doc(user.uid).update({
+          displayName: name,
+          username: userName,
+          website: website,
+          bio: bio,
+          profilePicture: profileImageUrl,
+        });
+
+        Alert.alert('Success', 'Profile updated successfully.');
+        navigation.navigate('ProfileScreen'); // Navigate back to ProfileScreen
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        Alert.alert('Error', 'Failed to update profile.');
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    }
   };
 
   return (
@@ -34,7 +114,11 @@ const EditProfileScreen = () => {
       {/* Profile Image */}
       <TouchableOpacity onPress={openImagePicker}>
         <Image
-          source={profileImage ? { uri: profileImage } : { uri: 'https://randomuser.me/api/portraits/women/8.jpg'}}
+          source={
+            profileImage
+              ? {uri: profileImage}
+              : {uri: 'https://randomuser.me/api/portraits/women/8.jpg'}
+          }
           style={styles.profileImage}
         />
         <Text style={styles.changePhotoText}>Change Profile Photo</Text>
@@ -68,7 +152,11 @@ const EditProfileScreen = () => {
       />
 
       {/* Save Button */}
-      <Button title="Save" onPress={handleSave} />
+      <Button
+        title={loading ? 'Saving...' : 'Save'}
+        onPress={handleSave}
+        disabled={loading}
+      />
     </View>
   );
 };

@@ -1,8 +1,9 @@
-import React from 'react';
-import {FlatList, StyleSheet, View, Button, Alert} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { FlatList, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
 import ProfileHeader from '../components/ProfileHeader';
 import PostGrid from '../components/PostGrid';
-import auth from '@react-native-firebase/auth';  // Import Firebase Auth
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 const mockPosts = [
   { id: '1', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
@@ -13,36 +14,60 @@ const mockPosts = [
   { id: '6', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
 ];
 
-// Moved List Header Component outside the ProfileScreen component
 const ProfileListHeader = ({ userProfile, handleLogout }) => {
   return (
     <View>
       <ProfileHeader
-        username={userProfile.username}
+        displayName={userProfile.displayName}
         profilePicture={userProfile.profilePicture}
         postCount={userProfile.postCount}
         followerCount={userProfile.followerCount}
         followingCount={userProfile.followingCount}
         bio={userProfile.bio}
         isCurrentUser={userProfile.isCurrentUser}
-        handleLogout={ handleLogout }
+        handleLogout={handleLogout}
       />
     </View>
   );
 };
 
 const ProfileScreen = ({ navigation }) => {
-  const userProfile = {
-    username: 'Rita Kumari',
-    profilePicture: 'https://randomuser.me/api/portraits/women/8.jpg',
-    postCount: 120,
-    followerCount: 250,
-    followingCount: 180,
-    bio: 'Photographer | Traveler | Dreamer',
-    isCurrentUser: true, // Set this to false when viewing other users
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchUserProfile = async () => {
+    try {
+      const user = auth().currentUser;
+      setLoading(true)
+      if (user) {
+        const userDoc = await firestore().collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          setUserProfile({
+            displayName: userData.displayName || 'No Name',
+            profilePicture: userData.profilePicture || 'https://via.placeholder.com/150',
+            postCount: userData.postCount || 0,
+            followerCount: userData.followersCount || 0,
+            followingCount: userData.followingCount || 0,
+            bio: userData.bio || 'No bio available',
+            isCurrentUser: true,
+          });
+        } else {
+          console.log('No user data found!');
+        }
+      }
+    } catch (error) {
+
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Function to handle logout
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
   const handleLogout = async () => {
     try {
       await auth().signOut();
@@ -53,18 +78,25 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="red" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* Use FlatList to avoid nested VirtualizedList issue */}
       <FlatList
         data={mockPosts}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         numColumns={3}
-        renderItem={({ item }) => (
-          <PostGrid posts={[item]} />
-        )}
+        renderItem={({ item }) => <PostGrid posts={[item]} />}
         ListHeaderComponent={
-          <ProfileListHeader userProfile={userProfile} handleLogout={handleLogout} />
+          userProfile && (
+            <ProfileListHeader userProfile={userProfile} handleLogout={handleLogout} />
+          )
         }
       />
     </View>
@@ -76,8 +108,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  logoutButtonContainer: {
-    margin: 20,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

@@ -4,7 +4,7 @@ import {View, Text, Image, StyleSheet} from 'react-native';
 import {Button, Icon} from 'react-native-elements';
 
 const ProfileHeader = ({
-  username,
+  displayName,
   profilePicture,
   postCount,
   followerCount,
@@ -60,7 +60,7 @@ const ProfileHeader = ({
 
       {/* Bio */}
       <View style={styles.bioContainer}>
-        <Text style={styles.username}>{username}</Text>
+        <Text style={styles.username}>{displayName}</Text>
         <Text style={styles.bio}>{bio}</Text>
       </View>
     </View>

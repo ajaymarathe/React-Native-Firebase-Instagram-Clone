@@ -58,12 +58,16 @@ const LoginScreen = ({navigation}) => {
         // Save user data in Firestore
         await firestore().collection('users').doc(uid).set({
           uid: uid,
-          email: userEmail,
-          profilePicture: '',
           username: '',
           bio: '',
+          email: userEmail,
+          profilePicture: 'https://randomuser.me/api/portraits/women/8.jpg',
           createdAt: firestore.FieldValue.serverTimestamp(),
           displayName: '',
+          website: '',
+          followersCount: 0,
+          followingCount: 0,
+          lastLogin: null,
         });
 
         Alert.alert('Success', 'User registered successfully!');
