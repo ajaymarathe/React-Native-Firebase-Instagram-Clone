@@ -1,52 +1,76 @@
-import React from 'react';
-import {View, ScrollView, StyleSheet} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import Post from '../components/Post';
+import firestore from '@react-native-firebase/firestore'; // Import Firestore
+import { formatDistanceToNow } from 'date-fns';
 
 const HomeScreen = () => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true); // For showing loading indicator while data is being fetched
+
+  useEffect(() => {
+    // Function to fetch posts from Firestore
+    const fetchPosts = async () => {
+      try {
+        const snapshot = await firestore().collection('posts').orderBy('createdAt', 'desc').get();
+        const postData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPosts(postData);
+        setLoading(false); // Data has been fetched
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        setLoading(false); // In case of error, stop loading
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+    // Function to format timestamp into "time ago" using date-fns
+    const formatTimeAgo = (timestamp) => {
+      const postTime = new Date(timestamp.seconds * 1000); // Convert Firestore timestamp to Date object
+      return formatDistanceToNow(postTime, { addSuffix: true }); // Returns "x minutes ago", "y days ago", etc.
+    };
+  
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
-      {/* Mock data for Posts */}
-      <Post
-        username="john_doe"
-        userImage="https://randomuser.me/api/portraits/men/1.jpg"
-        postImage="https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0"
-        likes={120}
-        caption="Enjoying the beautiful view!"
-        postedAt="2 hours ago"
-      />
-      <Post
-        username="jane_doe"
-        userImage="https://randomuser.me/api/portraits/women/1.jpg"
-        postImage="https://images.unsplash.com/photo-1445052693476-5134dfe40f70?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        likes={200}
-        caption="Feeling the breeze!"
-        postedAt="4 hours ago"
-      />
-      <Post
-        username="jane_doe"
-        userImage="https://randomuser.me/api/portraits/women/5.jpg"
-        postImage="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=1769&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        likes={200}
-        caption="Feeling the breeze!"
-        postedAt="4 hours ago"
-      />
-      <Post
-        username="Rita Kumari"
-        userImage="https://randomuser.me/api/portraits/women/8.jpg"
-        postImage="https://plus.unsplash.com/premium_photo-1676667573156-7d14e8b79ad3?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        likes={200}
-        caption="Feeling the breeze!"
-        postedAt="4 hours ago"
-      />
-      {/* Add more posts */}
-    </ScrollView>
+    <FlatList
+      data={posts}
+      keyExtractor={item => item.id}
+      renderItem={({ item }) => (
+        <Post
+          username={item.username}
+          userImage={item.userImage}
+          postImage={item.mediaUrl}
+          likes={item.likesCount}
+          caption={item.caption}
+          postedAt={formatTimeAgo(item.createdAt)} // Use formatTimeAgo function with date-fns
+        />
+      )}
+      contentContainerStyle={styles.container}
+    />
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    paddingBottom: 10,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
