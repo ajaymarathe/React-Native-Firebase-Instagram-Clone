@@ -1,4 +1,4 @@
-package com.instagramclone
+package com.newinstagramclone
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

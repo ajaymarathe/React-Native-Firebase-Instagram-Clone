@@ -26,7 +26,7 @@ const App = () => {
   return (
     <NavigationContainer>
       {/* If the user is logged in, show the HomeStack, otherwise show the AuthStack */}
-      {!user ? <HomeStack /> : <AuthStack />}
+      {user ? <HomeStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };

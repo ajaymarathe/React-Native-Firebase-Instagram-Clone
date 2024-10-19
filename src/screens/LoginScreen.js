@@ -1,15 +1,52 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, Image, Alert } from 'react-native';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    // Configure Google Sign-In
+    GoogleSignin.configure({
+      webClientId: '832907094489-7ag3tr45i2p9tkan7pclt4et34h5eg4c.apps.googleusercontent.com', // Example Web Client ID
+    });
+    
+  }, []);
+
   const handleLogin = () => {
-    // Handle login logic
     console.log('Logging in with:', email, password);
+    // Handle email/password login logic here
+  };
+
+  // Google Sign-In handler
+  const signInWithGoogle = async () => {
+    try {
+      // Get the user's ID token from Google
+      const { idToken } = await GoogleSignin.signIn();
+
+      // Create a Google credential with the token
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+      // Sign in with Firebase using the credential
+      const user = await auth().signInWithCredential(googleCredential);
+
+      console.log('User signed in with Google:', user);
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        Alert.alert('Login cancelled', 'The user cancelled the login process');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert('Login in progress', 'Login is already in progress');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Play Services not available', 'Google Play Services are required for Google Sign-In');
+      } else {
+        console.error('Error with Google Sign-In', error);
+        Alert.alert('Login error', 'An error occurred during Google Sign-In');
+      }
+    }
   };
 
   return (
@@ -20,7 +57,7 @@ const LoginScreen = ({ navigation }) => {
         style={styles.logo}
       />
 
-      {/* Reusable Input components */}
+      {/* Email and Password Input */}
       <CustomInput
         placeholder="Phone number, username, or email"
         icon="user"
@@ -43,13 +80,15 @@ const LoginScreen = ({ navigation }) => {
         Forgot Password?
       </Text>
 
-      {/* Or login with Facebook */}
+      {/* OR Text */}
       <Text style={styles.orText}>OR</Text>
+
+      {/* Google Sign-In Button */}
       <CustomButton
-        title="Log in with Facebook"
-        icon="facebook"
-        backgroundColor="#4267B2"
-        onPress={() => console.log('Log in with Facebook')}
+        title="Log in with Google"
+        icon="google"
+        backgroundColor="#F2BC05"
+        onPress={signInWithGoogle}
       />
 
       {/* Sign Up link */}

@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:832907094489:android:f203700cd3a346c7f8d1c8",
+        "mobilesdk_app_id": "1:832907094489:android:8fe4a8f3b8cf7c93f8d1c8",
         "android_client_info": {
-          "package_name": "com.instagramclone"
+          "package_name": "com.newinstagramclone"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "832907094489-56h7pmmnt8nb58vle9ohtsei36td76me.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.newinstagramclone",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "832907094489-7ag3tr45i2p9tkan7pclt4et34h5eg4c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyArM5NU07Svx9B_5pchk68azTSV1wyWBwQ"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "832907094489-7ag3tr45i2p9tkan7pclt4et34h5eg4c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
