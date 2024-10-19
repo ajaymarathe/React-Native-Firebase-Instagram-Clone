@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FlatList, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
 import ProfileHeader from '../components/ProfileHeader';
 import PostGrid from '../components/PostGrid';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
 
 const mockPosts = [
   { id: '1', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
@@ -38,7 +39,6 @@ const ProfileScreen = ({ navigation }) => {
   const fetchUserProfile = async () => {
     try {
       const user = auth().currentUser;
-      setLoading(true)
       if (user) {
         const userDoc = await firestore().collection('users').doc(user.uid).get();
         if (userDoc.exists) {
@@ -64,9 +64,11 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserProfile();
+    }, [])
+  );
 
   const handleLogout = async () => {
     try {

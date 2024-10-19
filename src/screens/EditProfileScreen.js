@@ -153,7 +153,7 @@ const EditProfileScreen = () => {
 
       {/* Save Button */}
       <Button
-        title={loading ? 'Saving...' : 'Save'}
+        title={loading ? 'Updating...' : 'Update'}
         onPress={handleSave}
         disabled={loading}
       />
