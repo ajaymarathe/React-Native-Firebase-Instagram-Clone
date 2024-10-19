@@ -34,8 +34,6 @@ const LoginScreen = ({navigation}) => {
         password,
       );
       console.log('User logged in:', userCredential);
-      // Navigate to Home Screen after successful login
-      navigation.navigate('HomeStack');
     } catch (error) {
       console.error('Error logging in:', error);
       Alert.alert('Login Error', error.message);
@@ -50,8 +48,6 @@ const LoginScreen = ({navigation}) => {
           password,
         );
         console.log('User signed up:', userCredential);
-        // Navigate to Home Screen after successful sign-up
-        navigation.navigate('HomeStack');
       } catch (error) {
         console.error('Error signing up:', error);
         Alert.alert('Sign-Up Error', error.message);

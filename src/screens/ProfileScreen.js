@@ -1,7 +1,8 @@
 import React from 'react';
-import {ScrollView, StyleSheet} from 'react-native';
+import {ScrollView, StyleSheet, Button, Alert, View} from 'react-native';
 import ProfileHeader from '../components/ProfileHeader';
 import PostGrid from '../components/PostGrid';
+import auth from '@react-native-firebase/auth'; // Import Firebase Auth
 
 const mockPosts = [
   {
@@ -28,11 +29,9 @@ const mockPosts = [
     id: '6',
     image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0',
   },
-  // Add more mock posts as needed
 ];
 
-const ProfileScreen = () => {
-
+const ProfileScreen = ({navigation}) => {
   const userProfile = {
     username: 'Rita Kumari',
     profilePicture: 'https://randomuser.me/api/portraits/women/8.jpg',
@@ -41,6 +40,17 @@ const ProfileScreen = () => {
     followingCount: 180,
     bio: 'Photographer | Traveler | Dreamer',
     isCurrentUser: true, // Set this to false when viewing other users
+  };
+
+  // Function to handle logout
+  const handleLogout = async () => {
+    try {
+      await auth().signOut();
+      Alert.alert('Logged Out', 'You have been logged out successfully.');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      Alert.alert('Logout Error', 'An error occurred while logging out.');
+    }
   };
 
   return (
@@ -58,6 +68,13 @@ const ProfileScreen = () => {
 
       {/* Post Grid */}
       <PostGrid posts={mockPosts} />
+
+      {/* Logout Button (only visible for the current user) */}
+      {userProfile.isCurrentUser && (
+        <View style={styles.logoutButtonContainer}>
+          <Button title="Log Out" onPress={handleLogout} />
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -66,6 +83,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  logoutButtonContainer: {
+    margin: 20,
   },
 });
 
