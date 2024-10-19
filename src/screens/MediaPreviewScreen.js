@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Image, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, {useState} from 'react';
+import {View, Image, TextInput, Button, StyleSheet, Alert} from 'react-native';
+import {useNavigation, useRoute, StackActions} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore'; // For Firestore
 import storage from '@react-native-firebase/storage'; // For Firebase Storage
 import auth from '@react-native-firebase/auth'; // For getting the current user
@@ -8,14 +8,16 @@ import auth from '@react-native-firebase/auth'; // For getting the current user
 const MediaPreviewScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { media } = route.params;  // The selected media passed from AddPostScreen
+  const {media} = route.params; // The selected media passed from AddPostScreen
   const [caption, setCaption] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Function to upload media to Firebase Storage
-  const uploadMedia = async (mediaUri) => {
+  const uploadMedia = async mediaUri => {
     const user = auth().currentUser;
-    if (!user) {return null;}
+    if (!user) {
+      return null;
+    }
 
     const reference = storage().ref(`posts/${user.uid}/${Date.now()}`);
     await reference.putFile(mediaUri);
@@ -54,6 +56,7 @@ const MediaPreviewScreen = () => {
 
       // 3. Navigate to Home after successful post creation
       Alert.alert('Success', 'Post published successfully.');
+      navigation.dispatch(StackActions.popToTop());
       navigation.navigate('Home');
     } catch (error) {
       console.error('Error publishing post:', error);
@@ -65,14 +68,18 @@ const MediaPreviewScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: media.uri }} style={styles.media} />
+      <Image source={{uri: media.uri}} style={styles.media} />
       <TextInput
         placeholder="Write a caption..."
         style={styles.captionInput}
         value={caption}
         onChangeText={setCaption}
       />
-      <Button title={loading ? 'Publishing...' : 'Publish'} onPress={handlePublish} disabled={loading} />
+      <Button
+        title={loading ? 'Publishing...' : 'Publish'}
+        onPress={handlePublish}
+        disabled={loading}
+      />
     </View>
   );
 };

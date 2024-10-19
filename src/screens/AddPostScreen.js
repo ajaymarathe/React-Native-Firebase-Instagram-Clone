@@ -1,23 +1,33 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, Button, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import React, {useState, useCallback} from 'react';
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {useNavigation, useFocusEffect, useIsFocused} from '@react-navigation/native';
 
 const AddPostScreen = () => {
   const [media, setMedia] = useState([]);
   const [selectedMedia, setSelectedMedia] = useState(null);
   const navigation = useNavigation();
+  const isFocused = useIsFocused(); // Hook to check if screen is focused
+
 
   // Function to open image picker and show recent items
   const openImagePicker = () => {
     console.log('openImagePicker');
     const options = {
-      mediaType: 'photo',  // you can also allow 'video' or 'mixed'
+      mediaType: 'photo', // you can also allow 'video' or 'mixed'
     };
-    launchImageLibrary(options, (response) => {
+    launchImageLibrary(options, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
-        navigation.navigate('Home');  // Navigate back to Home on cancel
+        navigation.navigate('Home'); // Navigate back to Home on cancel
       } else if (response.assets) {
         setMedia(response.assets);
       }
@@ -26,18 +36,22 @@ const AddPostScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      openImagePicker();
-    }, [])
+      // Only open the image picker if this screen is focused
+      if (isFocused) {
+        setMedia([]);
+        setSelectedMedia(null);
+        openImagePicker();
+      }
+    }, [isFocused]) // Depend on the focus state
   );
 
   const handleNext = () => {
-    navigation.navigate('MediaPreview', { media: selectedMedia });
+    navigation.navigate('MediaPreview', {media: selectedMedia});
   };
 
   const handleCancel = () => {
     setMedia([]);
     setSelectedMedia(null);
-    navigation.navigate('Home');  // Go back to Home Screen
   };
 
   return (
@@ -46,10 +60,10 @@ const AddPostScreen = () => {
       <FlatList
         data={media}
         numColumns={3}
-        keyExtractor={(item) => item.uri}
-        renderItem={({ item }) => (
+        keyExtractor={item => item.uri}
+        renderItem={({item}) => (
           <TouchableOpacity onPress={() => setSelectedMedia(item)}>
-            <Image source={{ uri: item.uri }} style={styles.image} />
+            <Image source={{uri: item.uri}} style={styles.image} />
             {selectedMedia?.uri === item.uri && (
               <View style={styles.selectedOverlay} />
             )}
