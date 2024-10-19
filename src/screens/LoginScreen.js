@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -17,8 +17,9 @@ import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
+import firestore from '@react-native-firebase/firestore';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -46,24 +47,42 @@ const LoginScreen = ({ navigation }) => {
   const handleSignUp = async () => {
     if (email && password) {
       try {
+        // Sign up the user with email and password
         const userCredential = await auth().createUserWithEmailAndPassword(
           email,
           password,
         );
+        const {uid, email: userEmail} = userCredential.user;
         console.log('User signed up:', userCredential);
+
+        // Save user data in Firestore
+        await firestore().collection('users').doc(uid).set({
+          uid: uid,
+          email: userEmail,
+          profilePicture: '',
+          username: '',
+          bio: '',
+          createdAt: firestore.FieldValue.serverTimestamp(),
+          displayName: '',
+        });
+
+        Alert.alert('Success', 'User registered successfully!');
+        // Navigate to home or profile screen
+        // navigation.navigate('HomeStack');
       } catch (error) {
         console.error('Error signing up:', error);
         Alert.alert('Sign-Up Error', error.message);
       }
+    } else {
+      Alert.alert('Input Error', 'Please enter email and password');
     }
-    return null;
   };
 
   // Google Sign-In handler
   const signInWithGoogle = async () => {
     try {
       // Get the user's ID token from Google
-      const { idToken } = await GoogleSignin.signIn();
+      const {idToken} = await GoogleSignin.signIn();
 
       // Create a Google credential with the token
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
@@ -93,8 +112,7 @@ const LoginScreen = ({ navigation }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
-    >
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}>
       <ScrollView contentContainerStyle={styles.innerContainer}>
         {/* Instagram logo */}
         <Image
