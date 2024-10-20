@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import {Icon} from 'react-native-elements';
 import {Modalize} from 'react-native-modalize';
-import firestore from '@react-native-firebase/firestore'; // Firestore for adding comments
-import auth from '@react-native-firebase/auth'; // For getting the current user
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const Post = ({
-  postId, // Assume each post has a unique postId
+  postId,
   displayName,
   userImage,
   postImage,
@@ -26,22 +26,18 @@ const Post = ({
   totalLikes,
 }) => {
   const [newComment, setNewComment] = useState('');
-  const [comments, setComments] = useState([]); // Store comments
+  const [comments, setComments] = useState([]);
   const modalizeRef = useRef(null);
   const currentUser = auth().currentUser;
 
-  // Open the comment section
   const openCommentSection = () => {
     modalizeRef.current?.open();
   };
 
-  console.log('comments', comments)
-
-  // Fetch comments from Firestore
   useEffect(() => {
     const fetchComments = firestore()
       .collection('posts')
-      .doc(postId) // Access specific post by postId
+      .doc(postId)
       .collection('comments')
       .orderBy('createdAt', 'desc')
       .onSnapshot(snapshot => {
@@ -52,17 +48,11 @@ const Post = ({
         setComments(fetchedComments);
       });
 
-    return () => fetchComments(); // Cleanup listener
+    return () => fetchComments();
   }, [postId]);
 
-  // Handle adding a new comment
   const handleAddComment = async () => {
     if (newComment.trim()) {
-      const user = {
-        displayName: displayName, // Replace with the current user's username
-        userId: currentUser.uid, // Replace with the current user's ID
-      };
-
       try {
         await firestore()
           .collection('posts')
@@ -70,30 +60,26 @@ const Post = ({
           .collection('comments')
           .add({
             comment: newComment,
-            displayName: user.displayName,
-            userId: user.userId,
+            displayName: currentUser.displayName,
+            userId: currentUser.uid,
             createdAt: firestore.FieldValue.serverTimestamp(),
           });
-        setNewComment(''); // Clear the input field after posting
+        setNewComment('');
       } catch (error) {
         Alert.alert('Error', 'Failed to add comment');
-        console.error('Error adding comment:', error);
       }
     }
   };
 
   return (
     <View style={styles.postContainer}>
-      {/* Header: User Avatar and displayName */}
       <View style={styles.header}>
         <Image source={{uri: userImage}} style={styles.userImage} />
         <Text style={styles.username}>{displayName}</Text>
       </View>
 
-      {/* Post Image */}
       <Image source={{uri: postImage}} style={styles.postImage} />
 
-      {/* Post Actions: Like, Comment, Share */}
       <View style={styles.actions}>
         <Icon name="heart-o" type="font-awesome" size={24} color="#000" />
         <TouchableOpacity onPress={openCommentSection}>
@@ -114,28 +100,22 @@ const Post = ({
         />
       </View>
 
-      {/* Likes Display */}
       <Text style={styles.likes}>
         Liked by <Text style={styles.bold}>{likedBy}</Text> and{' '}
         <Text style={styles.bold}>{totalLikes}</Text> others
       </Text>
 
-      {/* Caption */}
       <Text style={styles.caption}>
         <Text style={styles.username}>{displayName} </Text>
         {caption}
       </Text>
 
-      {/* Post Time */}
       <Text style={styles.postedAt}>{postedAt}</Text>
 
-      {/* Comment Section Bottom Sheet */}
       <Modalize ref={modalizeRef} snapPoint={600}>
         <View style={styles.modalContent}>
-          <Text style={styles.commentHeader}>Comments</Text>
-
-          {/* Display comments */}
           <View style={styles.commentSection}>
+            <Text style={styles.commentHeader}>Comments</Text>
             {comments.length > 0 ? (
               comments.map((comment, index) => (
                 <Text key={index} style={styles.comment}>
@@ -148,7 +128,6 @@ const Post = ({
             )}
           </View>
 
-          {/* Comment Input */}
           <KeyboardAvoidingView
             behavior="padding"
             style={styles.commentInputContainer}>
