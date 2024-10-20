@@ -24,6 +24,7 @@ const Post = ({
   postedAt,
   likedBy,
   totalLikes,
+  commentsCount,
 }) => {
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState([]);
@@ -54,22 +55,30 @@ const Post = ({
   const handleAddComment = async () => {
     if (newComment.trim()) {
       try {
-        await firestore()
-          .collection('posts')
-          .doc(postId)
-          .collection('comments')
-          .add({
-            comment: newComment,
-            displayName: currentUser.displayName,
-            userId: currentUser.uid,
-            createdAt: firestore.FieldValue.serverTimestamp(),
-          });
-        setNewComment('');
+        const postRef = firestore().collection('posts').doc(postId);
+
+        // Add new comment to the comments collection
+        await postRef.collection('comments').add({
+          comment: newComment,
+          displayName: currentUser.displayName,
+          userId: currentUser.uid,
+          createdAt: firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Update commentsCount in the posts document
+        await postRef.update({
+          commentsCount: firestore.FieldValue.increment(1), // Increment the commentsCount by 1
+        });
+
+        setNewComment(''); // Clear the input field after posting
       } catch (error) {
         Alert.alert('Error', 'Failed to add comment');
+        console.error('Error adding comment:', error);
       }
     }
   };
+
+  const addLike = () => {};
 
   return (
     <View style={styles.postContainer}>
@@ -81,8 +90,13 @@ const Post = ({
       <Image source={{uri: postImage}} style={styles.postImage} />
 
       <View style={styles.actions}>
-        <Icon name="heart-o" type="font-awesome" size={24} color="#000" />
-        <TouchableOpacity onPress={openCommentSection}>
+        <TouchableOpacity onPress={addLike} style={styles.commentContainer}>
+          <Icon name="heart-o" type="font-awesome" size={24} color="#000" />
+          <Text style={ styles.lightText }> {totalLikes}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={openCommentSection}
+          style={styles.commentContainer}>
           <Icon
             name="comment-o"
             type="font-awesome"
@@ -90,6 +104,7 @@ const Post = ({
             color="#000"
             style={styles.icon}
           />
+          {commentsCount !== 0 && <Text style={ styles.lightText }> {commentsCount}</Text>}
         </TouchableOpacity>
         <Icon
           name="paper-plane-o"
@@ -105,10 +120,7 @@ const Post = ({
         <Text style={styles.bold}>{totalLikes}</Text> others
       </Text>
 
-      <Text style={styles.caption}>
-        <Text style={styles.username}>{displayName} </Text>
-        {caption}
-      </Text>
+      <Text style={styles.caption}>{caption}</Text>
 
       <Text style={styles.postedAt}>{postedAt}</Text>
 
@@ -172,6 +184,7 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     padding: 10,
+    alignItems: 'center',
   },
   icon: {
     marginLeft: 10,
@@ -195,6 +208,13 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 20,
+  },
+  lightText: {
+    fontSize: 13,
+  },
+  commentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   commentHeader: {
     fontSize: 18,
