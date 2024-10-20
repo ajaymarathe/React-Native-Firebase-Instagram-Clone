@@ -1,9 +1,21 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
-import { Icon } from 'react-native-elements';
-import { Modalize } from 'react-native-modalize';
+import React, {useRef, useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Alert,
+} from 'react-native';
+import {Icon} from 'react-native-elements';
+import {Modalize} from 'react-native-modalize';
+import firestore from '@react-native-firebase/firestore'; // Firestore for adding comments
+import auth from '@react-native-firebase/auth'; // For getting the current user
 
 const Post = ({
+  postId, // Assume each post has a unique postId
   displayName,
   userImage,
   postImage,
@@ -12,46 +24,100 @@ const Post = ({
   postedAt,
   likedBy,
   totalLikes,
-  comments,
 }) => {
   const [newComment, setNewComment] = useState('');
+  const [comments, setComments] = useState([]); // Store comments
   const modalizeRef = useRef(null);
+  const currentUser = auth().currentUser;
 
   // Open the comment section
   const openCommentSection = () => {
     modalizeRef.current?.open();
   };
 
+  console.log('comments', comments)
+
+  // Fetch comments from Firestore
+  useEffect(() => {
+    const fetchComments = firestore()
+      .collection('posts')
+      .doc(postId) // Access specific post by postId
+      .collection('comments')
+      .orderBy('createdAt', 'desc')
+      .onSnapshot(snapshot => {
+        const fetchedComments = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setComments(fetchedComments);
+      });
+
+    return () => fetchComments(); // Cleanup listener
+  }, [postId]);
+
   // Handle adding a new comment
-  const handleAddComment = () => {
-    // Here you would send the new comment to your backend or database
-    console.log('New comment:', newComment);
-    setNewComment(''); // Clear the input field
+  const handleAddComment = async () => {
+    if (newComment.trim()) {
+      const user = {
+        displayName: displayName, // Replace with the current user's username
+        userId: currentUser.uid, // Replace with the current user's ID
+      };
+
+      try {
+        await firestore()
+          .collection('posts')
+          .doc(postId)
+          .collection('comments')
+          .add({
+            comment: newComment,
+            displayName: user.displayName,
+            userId: user.userId,
+            createdAt: firestore.FieldValue.serverTimestamp(),
+          });
+        setNewComment(''); // Clear the input field after posting
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add comment');
+        console.error('Error adding comment:', error);
+      }
+    }
   };
 
   return (
     <View style={styles.postContainer}>
       {/* Header: User Avatar and displayName */}
       <View style={styles.header}>
-        <Image source={{ uri: userImage }} style={styles.userImage} />
+        <Image source={{uri: userImage}} style={styles.userImage} />
         <Text style={styles.username}>{displayName}</Text>
       </View>
 
       {/* Post Image */}
-      <Image source={{ uri: postImage }} style={styles.postImage} />
+      <Image source={{uri: postImage}} style={styles.postImage} />
 
       {/* Post Actions: Like, Comment, Share */}
       <View style={styles.actions}>
         <Icon name="heart-o" type="font-awesome" size={24} color="#000" />
         <TouchableOpacity onPress={openCommentSection}>
-          <Icon name="comment-o" type="font-awesome" size={24} color="#000" style={styles.icon} />
+          <Icon
+            name="comment-o"
+            type="font-awesome"
+            size={24}
+            color="#000"
+            style={styles.icon}
+          />
         </TouchableOpacity>
-        <Icon name="paper-plane-o" type="font-awesome" size={24} color="#000" style={styles.icon} />
+        <Icon
+          name="paper-plane-o"
+          type="font-awesome"
+          size={24}
+          color="#000"
+          style={styles.icon}
+        />
       </View>
 
       {/* Likes Display */}
       <Text style={styles.likes}>
-        Liked by <Text style={styles.bold}>{likedBy}</Text> and <Text style={styles.bold}>{totalLikes}</Text> others
+        Liked by <Text style={styles.bold}>{likedBy}</Text> and{' '}
+        <Text style={styles.bold}>{totalLikes}</Text> others
       </Text>
 
       {/* Caption */}
@@ -70,16 +136,22 @@ const Post = ({
 
           {/* Display comments */}
           <View style={styles.commentSection}>
-            {comments.map((comment, index) => (
-              <Text key={index} style={styles.comment}>
-                <Text style={styles.username}>{comment.username} </Text>
-                {comment.text}
-              </Text>
-            ))}
+            {comments.length > 0 ? (
+              comments.map((comment, index) => (
+                <Text key={index} style={styles.comment}>
+                  <Text style={styles.username}>{comment.displayName} </Text>
+                  {comment.comment}
+                </Text>
+              ))
+            ) : (
+              <Text>No comments yet. Be the first to comment!</Text>
+            )}
           </View>
 
           {/* Comment Input */}
-          <KeyboardAvoidingView behavior="padding" style={styles.commentInputContainer}>
+          <KeyboardAvoidingView
+            behavior="padding"
+            style={styles.commentInputContainer}>
             <TextInput
               style={styles.commentInput}
               placeholder="Add a comment..."

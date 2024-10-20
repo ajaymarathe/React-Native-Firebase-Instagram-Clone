@@ -70,23 +70,26 @@ const HomeScreen = () => {
     <FlatList
       data={posts}
       keyExtractor={item => item.id}
-      renderItem={({item}) => (
-        <Post
-          displayName={item.displayName}
-          userImage={item.userImage}
-          postImage={item.mediaUrl}
-          likes={item.likesCount}
-          caption={item.caption}
-          postedAt={formatTimeAgo(item.createdAt)}
-          {...item}
-          comments={[
-            {username: 'jane_doe', text: 'Looks amazing!'},
-            {username: 'mike_smith', text: 'Wow, great shot!'},
-          ]}
-          likedBy="Jane Doe"
-          totalLikes={23385}
-        />
-      )}
+      renderItem={({item}) => {
+        return (
+          <Post
+            postId={item.id}
+            displayName={item.displayName}
+            userImage={item.userImage}
+            postImage={item.mediaUrl}
+            likes={item.likesCount}
+            caption={item.caption}
+            postedAt={formatTimeAgo(item.createdAt)}
+            {...item}
+            comments={[
+              {username: 'jane_doe', text: 'Looks amazing!'},
+              {username: 'mike_smith', text: 'Wow, great shot!'},
+            ]}
+            likedBy="Jane Doe"
+            totalLikes={23385}
+          />
+        );
+      }}
       contentContainerStyle={styles.container}
     />
   );
