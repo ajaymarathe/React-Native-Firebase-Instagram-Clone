@@ -72,12 +72,19 @@ const HomeScreen = () => {
       keyExtractor={item => item.id}
       renderItem={({item}) => (
         <Post
-          displayName={item.displayName} // Username fetched from user data
-          userImage={item.userImage} // User profile picture fetched from user data
-          postImage={item.mediaUrl} // Post media
-          likes={item.likesCount} // Post likes
-          caption={item.caption} // Post caption
-          postedAt={formatTimeAgo(item.createdAt)} // Use formatTimeAgo function with date-fns
+          displayName={item.displayName}
+          userImage={item.userImage}
+          postImage={item.mediaUrl}
+          likes={item.likesCount}
+          caption={item.caption}
+          postedAt={formatTimeAgo(item.createdAt)}
+          {...item}
+          comments={[
+            {username: 'jane_doe', text: 'Looks amazing!'},
+            {username: 'mike_smith', text: 'Wow, great shot!'},
+          ]}
+          likedBy="Jane Doe"
+          totalLikes={23385}
         />
       )}
       contentContainerStyle={styles.container}

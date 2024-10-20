@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import {GestureHandlerRootView} from 'react-native-gesture-handler'; // Import GestureHandlerRootView
+
 // Import the stacks
 import {AuthStack, HomeStack} from './src/navigationstacks/NavigationStack';
 
@@ -21,13 +23,17 @@ const App = () => {
     return subscriber; // Unsubscribe on unmount
   }, []);
 
-  if (initializing) {return null;} // Optionally show a loading spinner
+  if (initializing) {
+    return null;
+  } // Optionally show a loading spinner
 
   return (
-    <NavigationContainer>
-      {/* If the user is logged in, show the HomeStack, otherwise show the AuthStack */}
-      {user ? <HomeStack /> : <AuthStack />}
-    </NavigationContainer>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <NavigationContainer>
+        {/* If the user is logged in, show the HomeStack, otherwise show the AuthStack */}
+        {user ? <HomeStack /> : <AuthStack />}
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 };
 
