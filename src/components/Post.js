@@ -84,7 +84,7 @@ const Post = ({
       // If the post is not liked, add a like
       await postRef.collection('likes').doc(currentUser.uid).set({
         userId: currentUser.uid,
-        displayName: currentUser.displayName,
+        displayName: displayName,
         createdAt: firestore.FieldValue.serverTimestamp(),
       });
       await postRef.update({
@@ -104,7 +104,7 @@ const Post = ({
         // Add new comment to the comments collection
         await postRef.collection('comments').add({
           comment: newComment,
-          displayName: currentUser.displayName,
+          displayName: displayName,
           userId: currentUser.uid,
           createdAt: firestore.FieldValue.serverTimestamp(),
         });
