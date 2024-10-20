@@ -19,7 +19,6 @@ const Post = ({
   displayName,
   userImage,
   postImage,
-  likes,
   caption,
   postedAt,
   likedBy,
@@ -28,6 +27,8 @@ const Post = ({
 }) => {
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState([]);
+  const [liked, setLiked] = useState(false); // Track if the current user has liked the post
+  const [likesCount, setLikesCount] = useState(totalLikes); // Track the number of likes
   const modalizeRef = useRef(null);
   const currentUser = auth().currentUser;
 
@@ -35,6 +36,7 @@ const Post = ({
     modalizeRef.current?.open();
   };
 
+  // Fetch comments from Firestore
   useEffect(() => {
     const fetchComments = firestore()
       .collection('posts')
@@ -52,6 +54,48 @@ const Post = ({
     return () => fetchComments();
   }, [postId]);
 
+  // Check if the user has already liked the post
+  useEffect(() => {
+    const checkIfLiked = async () => {
+      const postRef = firestore().collection('posts').doc(postId);
+      const likeDoc = await postRef
+        .collection('likes')
+        .doc(currentUser.uid)
+        .get();
+      setLiked(likeDoc.exists); // If the user has liked, set liked to true
+    };
+
+    checkIfLiked();
+  }, [postId, currentUser.uid]);
+
+  // Add or remove like functionality
+  const addLike = async () => {
+    const postRef = firestore().collection('posts').doc(postId);
+
+    if (liked) {
+      // If the post is already liked, unlike it
+      await postRef.collection('likes').doc(currentUser.uid).delete();
+      await postRef.update({
+        likesCount: firestore.FieldValue.increment(-1), // Decrease the likes count by 1
+      });
+      setLikesCount(likesCount - 1); // Update local state
+      setLiked(false); // Mark as not liked
+    } else {
+      // If the post is not liked, add a like
+      await postRef.collection('likes').doc(currentUser.uid).set({
+        userId: currentUser.uid,
+        displayName: currentUser.displayName,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      });
+      await postRef.update({
+        likesCount: firestore.FieldValue.increment(1), // Increase the likes count by 1
+      });
+      setLikesCount(likesCount + 1); // Update local state
+      setLiked(true); // Mark as liked
+    }
+  };
+
+  // Add a comment and update comments count
   const handleAddComment = async () => {
     if (newComment.trim()) {
       try {
@@ -78,8 +122,6 @@ const Post = ({
     }
   };
 
-  const addLike = () => {};
-
   return (
     <View style={styles.postContainer}>
       <View style={styles.header}>
@@ -91,34 +133,40 @@ const Post = ({
 
       <View style={styles.actions}>
         <TouchableOpacity onPress={addLike} style={styles.commentContainer}>
-          <Icon name="heart-o" type="font-awesome" size={24} color="#000" />
-          <Text style={ styles.lightText }> {totalLikes}</Text>
+          <Icon
+            name={liked ? 'heart' : 'heart-o'} // Toggle between filled and empty heart
+            type="font-awesome"
+            size={24}
+            color={liked ? 'red' : '#000'}
+          />
+          {likesCount !== 0 && (
+            <Text style={styles.lightText}> {likesCount}</Text>
+          )}
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={openCommentSection}
           style={styles.commentContainer}>
-          <Icon
-            name="comment-o"
-            type="font-awesome"
-            size={24}
-            color="#000"
-            style={styles.icon}
-          />
-          {commentsCount !== 0 && <Text style={ styles.lightText }> {commentsCount}</Text>}
+          <Icon name="comment-o" type="font-awesome" size={24} color="#000" />
+          {commentsCount !== 0 && (
+            <Text style={styles.lightText}> {commentsCount}</Text>
+          )}
         </TouchableOpacity>
-        <Icon
-          name="paper-plane-o"
-          type="font-awesome"
-          size={24}
-          color="#000"
-          style={styles.icon}
-        />
+
+        <Icon name="paper-plane-o" type="font-awesome" size={24} color="#000" />
       </View>
 
-      <Text style={styles.likes}>
-        Liked by <Text style={styles.bold}>{likedBy}</Text> and{' '}
-        <Text style={styles.bold}>{totalLikes}</Text> others
-      </Text>
+      {likesCount > 0 && (
+        <Text style={styles.likes}>
+          Liked by <Text style={styles.bold}>{likedBy}</Text>
+          {likesCount > 1 && (
+            <>
+              <Text style={styles.bold}> and {likesCount}</Text>
+              <Text>others </Text>
+            </>
+          )}
+        </Text>
+      )}
 
       <Text style={styles.caption}>{caption}</Text>
 
@@ -185,6 +233,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 10,
     alignItems: 'center',
+    width: '40%',
+    justifyContent: 'space-around',
   },
   icon: {
     marginLeft: 10,
@@ -211,6 +261,7 @@ const styles = StyleSheet.create({
   },
   lightText: {
     fontSize: 13,
+    marginRight: 5,
   },
   commentContainer: {
     flexDirection: 'row',

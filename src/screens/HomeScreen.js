@@ -86,7 +86,7 @@ const HomeScreen = () => {
               {username: 'mike_smith', text: 'Wow, great shot!'},
             ]}
             likedBy="Jane Doe"
-            totalLikes={23385}
+            totalLikes={item.likesCount}
           />
         );
       }}
