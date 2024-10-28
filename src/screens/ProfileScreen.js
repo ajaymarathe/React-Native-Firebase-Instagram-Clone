@@ -6,35 +6,28 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 
-const mockPosts = [
-  { id: '1', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
-  { id: '2', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
-  { id: '3', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
-  { id: '4', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
-  { id: '5', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
-  { id: '6', image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0' },
-];
+const ProfileListHeader = ({ userProfile, handleLogout }) => (
+  <View>
+    <ProfileHeader
+      displayName={userProfile.displayName}
+      profilePicture={userProfile.profilePicture}
+      postCount={userProfile.postCount}
+      followerCount={userProfile.followerCount}
+      followingCount={userProfile.followingCount}
+      bio={userProfile.bio}
+      isCurrentUser={userProfile.isCurrentUser}
+      handleLogout={handleLogout}
+    />
+  </View>
+);
 
-const ProfileListHeader = ({ userProfile, handleLogout }) => {
-  return (
-    <View>
-      <ProfileHeader
-        displayName={userProfile.displayName}
-        profilePicture={userProfile.profilePicture}
-        postCount={userProfile.postCount}
-        followerCount={userProfile.followerCount}
-        followingCount={userProfile.followingCount}
-        bio={userProfile.bio}
-        isCurrentUser={userProfile.isCurrentUser}
-        handleLogout={handleLogout}
-      />
-    </View>
-  );
-};
-
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = () => {
   const [userProfile, setUserProfile] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+
+  console.log('userPosts', userPosts)
 
   const fetchUserProfile = async () => {
     try {
@@ -52,13 +45,33 @@ const ProfileScreen = ({ navigation }) => {
             bio: userData.bio || 'No bio available',
             isCurrentUser: true,
           });
-        } else {
-          console.log('No user data found!');
         }
       }
     } catch (error) {
-
       console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const fetchUserPosts = async () => {
+    try {
+      setLoading(true);
+      const user = auth().currentUser;
+      if (user) {
+        const postSnapshot = await firestore()
+          .collection('posts')
+          .where('userId', '==', user.uid)
+          .orderBy('createdAt', 'desc')
+          .get();
+
+        const posts = postSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setUserPosts(posts);
+      }
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
     } finally {
       setLoading(false);
     }
@@ -67,6 +80,7 @@ const ProfileScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchUserProfile();
+      fetchUserPosts();
     }, [])
   );
 
@@ -91,15 +105,16 @@ const ProfileScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={mockPosts}
+        data={userPosts}
         keyExtractor={(item) => item.id}
         numColumns={3}
-        renderItem={({ item }) => <PostGrid posts={[item]} />}
+        renderItem={({ item }) => <PostGrid post={item} />}
         ListHeaderComponent={
           userProfile && (
             <ProfileListHeader userProfile={userProfile} handleLogout={handleLogout} />
           )
         }
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
     </View>
   );

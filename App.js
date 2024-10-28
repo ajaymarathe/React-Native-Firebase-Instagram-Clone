@@ -30,7 +30,6 @@ const App = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <NavigationContainer>
-        {/* If the user is logged in, show the HomeStack, otherwise show the AuthStack */}
         {user ? <HomeStack /> : <AuthStack />}
       </NavigationContainer>
     </GestureHandlerRootView>
