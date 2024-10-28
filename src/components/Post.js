@@ -13,6 +13,7 @@ import {Icon} from 'react-native-elements';
 import {Modalize} from 'react-native-modalize';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import {useNavigation} from '@react-navigation/native';
 
 const Post = ({
   postId,
@@ -24,6 +25,7 @@ const Post = ({
   likedBy,
   totalLikes,
   commentsCount,
+  userId,
 }) => {
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState([]);
@@ -31,11 +33,15 @@ const Post = ({
   const [likesCount, setLikesCount] = useState(totalLikes); // Track the number of likes
   const modalizeRef = useRef(null);
   const currentUser = auth().currentUser;
+  const navigation = useNavigation();
 
   const openCommentSection = () => {
     modalizeRef.current?.open();
   };
 
+  const handleNavigateToProfile = () => {
+    navigation.navigate('ProfileScreen', {userId});
+  };
   // Fetch comments from Firestore
   useEffect(() => {
     const fetchComments = firestore()
@@ -124,10 +130,10 @@ const Post = ({
 
   return (
     <View style={styles.postContainer}>
-      <View style={styles.header}>
+      <TouchableOpacity onPress={handleNavigateToProfile} style={styles.header}>
         <Image source={{uri: userImage}} style={styles.userImage} />
         <Text style={styles.username}>{displayName}</Text>
-      </View>
+      </TouchableOpacity>
 
       <Image source={{uri: postImage}} style={styles.postImage} />
 

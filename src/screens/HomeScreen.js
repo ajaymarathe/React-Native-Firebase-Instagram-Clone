@@ -87,10 +87,6 @@ const HomeScreen = () => {
           caption={item.caption}
           postedAt={formatTimeAgo(item.createdAt)}
           {...item}
-          comments={[
-            {username: 'jane_doe', text: 'Looks amazing!'},
-            {username: 'mike_smith', text: 'Wow, great shot!'},
-          ]}
           likedBy="Jane Doe"
           totalLikes={item.likesCount}
         />

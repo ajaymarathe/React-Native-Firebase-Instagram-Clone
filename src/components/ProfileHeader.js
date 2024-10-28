@@ -15,6 +15,8 @@ const ProfileHeader = ({
 }) => {
   const navigation = useNavigation();
 
+  console.log('isCurrentUser', isCurrentUser)
+
   return (
     <View style={styles.container}>
       {/* Profile Picture */}
@@ -51,7 +53,7 @@ const ProfileHeader = ({
           <Button
             title="Follow"
             buttonStyle={styles.followButton}
-            titleStyle={styles.buttonText}
+            titleStyle={styles.followBtnText}
           />
         )}
 
@@ -110,21 +112,27 @@ const styles = StyleSheet.create({
   },
   followButton: {
     backgroundColor: '#3897f0',
+    borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 5,
-    paddingHorizontal: 30,
-    width: 50,
+    paddingHorizontal: 10,
   },
   buttonText: {
     fontSize: 14,
     color: '#000',
   },
+  followBtnText: {
+    fontSize: 14,
+    color: 'white',
+  },
   bioContainer: {
     marginTop: 10,
   },
   username: {
-    fontWeight: 'bold',
-    fontSize: 20,
+    fontWeight: '500',
+    fontSize: 24,
     textAlign: 'center',
+    textTransform: 'capitalize'
   },
   bio: {
     marginTop: 5,
