@@ -1,49 +1,77 @@
-import React from 'react';
-import { ScrollView, StyleSheet, View, Text } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  FlatList,
+  StyleSheet,
+  View,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import NotificationItem from '../components/NotificationItem';
-
-const mockNotifications = [
-  {
-    id: '1',
-    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-    message: 'john_doe liked your post.',
-    time: '2 hours ago',
-    isFollowRequest: false,
-  },
-  {
-    id: '2',
-    avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-    message: 'jane_doe started following you.',
-    time: '3 hours ago',
-    isFollowRequest: true,
-  },
-  {
-    id: '3',
-    avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
-    message: 'michael_commented on your post.',
-    time: '5 hours ago',
-    isFollowRequest: false,
-  },
-  // Add more mock notifications as needed
-];
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const NotificationsScreen = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const currentUser = auth().currentUser;
+        if (!currentUser) {return;}
+
+        const snapshot = await firestore()
+          .collection('notifications')
+          .where('userId', '==', currentUser.uid)
+          .orderBy('createdAt', 'desc')
+          .limit(20)
+          .get();
+
+        const fetchedNotifications = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setNotifications(fetchedNotifications);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  const renderNotification = ({item}) => (
+    <NotificationItem
+      avatar={item.avatar}
+      message={item.message}
+      time={new Date(item.createdAt.toDate()).toLocaleString()}
+      isFollowRequest={item.type === 'follow'}
+    />
+  );
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Activity</Text>
       </View>
-
-      {mockNotifications.map((notification) => (
-        <NotificationItem
-          key={notification.id}
-          avatar={notification.avatar}
-          message={notification.message}
-          time={notification.time}
-          isFollowRequest={notification.isFollowRequest}
-        />
-      ))}
-    </ScrollView>
+      <FlatList
+        data={notifications}
+        keyExtractor={item => item.id}
+        renderItem={renderNotification}
+        contentContainerStyle={{paddingBottom: 20}}
+      />
+    </View>
   );
 };
 
@@ -60,6 +88,11 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
