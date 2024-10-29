@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
 import {Button} from 'react-native-elements';
+import {formatTimeAgo} from '../helpers';
 
 const NotificationItem = ({avatar, message, time, isFollowRequest}) => {
   return (
@@ -9,7 +10,7 @@ const NotificationItem = ({avatar, message, time, isFollowRequest}) => {
 
       <View style={styles.textContainer}>
         <Text style={styles.message}>{message}</Text>
-        <Text style={styles.time}>{time}</Text>
+        <Text style={styles.time}>{formatTimeAgo(time)}</Text>
       </View>
 
       {/* Show Follow Button only for follow requests */}

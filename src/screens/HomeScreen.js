@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {View, FlatList, StyleSheet, ActivityIndicator, RefreshControl} from 'react-native';
 import Post from '../components/Post';
 import firestore from '@react-native-firebase/firestore'; // Import Firestore
-import {formatDistanceToNow} from 'date-fns';
+import { formatTimeAgo } from '../helpers';
 
 const HomeScreen = () => {
   const [posts, setPosts] = useState([]);
@@ -57,12 +57,6 @@ const HomeScreen = () => {
     setRefreshing(true);
     await fetchPosts(); // Refetch the posts
     setRefreshing(false);
-  };
-
-  // Function to format timestamp into "time ago" using date-fns
-  const formatTimeAgo = timestamp => {
-    const postTime = new Date(timestamp.seconds * 1000); // Convert Firestore timestamp to Date object
-    return formatDistanceToNow(postTime, {addSuffix: true}); // Returns "x minutes ago", "y days ago", etc.
   };
 
   if (loading) {

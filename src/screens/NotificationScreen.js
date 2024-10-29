@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   FlatList,
   StyleSheet,
   View,
   Text,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import NotificationItem from '../components/NotificationItem';
 import firestore from '@react-native-firebase/firestore';
@@ -13,35 +14,42 @@ import auth from '@react-native-firebase/auth';
 const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const currentUser = auth().currentUser;
+      if (!currentUser) {return;}
+
+      const snapshot = await firestore()
+        .collection('notifications')
+        .where('userId', '==', currentUser.uid)
+        .orderBy('createdAt', 'desc')
+        .limit(20)
+        .get();
+
+      const fetchedNotifications = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setNotifications(fetchedNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const currentUser = auth().currentUser;
-        if (!currentUser) {return;}
-
-        const snapshot = await firestore()
-          .collection('notifications')
-          .where('userId', '==', currentUser.uid)
-          .orderBy('createdAt', 'desc')
-          .limit(20)
-          .get();
-
-        const fetchedNotifications = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setNotifications(fetchedNotifications);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchNotifications();
+  };
 
   if (loading) {
     return (
@@ -55,7 +63,7 @@ const NotificationsScreen = () => {
     <NotificationItem
       avatar={item.avatar}
       message={item.message}
-      time={new Date(item.createdAt.toDate()).toLocaleString()}
+      time={item.createdAt}
       isFollowRequest={item.type === 'follow'}
     />
   );
@@ -70,6 +78,9 @@ const NotificationsScreen = () => {
         keyExtractor={item => item.id}
         renderItem={renderNotification}
         contentContainerStyle={{paddingBottom: 20}}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </View>
   );

@@ -1,19 +1,19 @@
-import React, {useState} from 'react';
-import {View, Image, TextInput, Button, StyleSheet, Alert} from 'react-native';
-import {useNavigation, useRoute, StackActions} from '@react-navigation/native';
-import firestore from '@react-native-firebase/firestore'; // For Firestore
-import storage from '@react-native-firebase/storage'; // For Firebase Storage
-import auth from '@react-native-firebase/auth'; // For getting the current user
+import React, { useState } from 'react';
+import { View, Image, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { useNavigation, useRoute, StackActions } from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+import auth from '@react-native-firebase/auth';
 
 const MediaPreviewScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const {media} = route.params; // The selected media passed from AddPostScreen
+  const { media } = route.params;
   const [caption, setCaption] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Function to upload media to Firebase Storage
-  const uploadMedia = async mediaUri => {
+  const uploadMedia = async (mediaUri) => {
     const user = auth().currentUser;
     if (!user) {
       return null;
@@ -22,6 +22,34 @@ const MediaPreviewScreen = () => {
     const reference = storage().ref(`posts/${user.uid}/${Date.now()}`);
     await reference.putFile(mediaUri);
     return await reference.getDownloadURL();
+  };
+
+  // Function to create a notification for all users
+  const createNotificationForAllUsers = async (postId) => {
+    const user = auth().currentUser;
+    if (!user) {return;}
+
+    try {
+      const usersSnapshot = await firestore().collection('users').get();
+      const notificationsBatch = firestore().batch();
+
+      usersSnapshot.forEach((userDoc) => {
+        const notificationRef = firestore().collection('notifications').doc();
+        notificationsBatch.set(notificationRef, {
+          userId: userDoc.id, // Notification for each user's userId
+          senderId: user.uid,
+          postId: postId,
+          message: `${user.displayName} created a new post`,
+          type: 'post',
+          createdAt: firestore.FieldValue.serverTimestamp(),
+          avatar: user.photoURL || '',
+        });
+      });
+
+      await notificationsBatch.commit();
+    } catch (error) {
+      console.error('Error creating notifications:', error);
+    }
   };
 
   // Function to handle post publishing
@@ -45,7 +73,7 @@ const MediaPreviewScreen = () => {
       }
 
       // 2. Save the post to Firestore
-      await firestore().collection('posts').add({
+      const postRef = await firestore().collection('posts').add({
         userId: user.uid,
         mediaUrl: mediaUrl,
         caption: caption,
@@ -54,7 +82,10 @@ const MediaPreviewScreen = () => {
         createdAt: firestore.FieldValue.serverTimestamp(),
       });
 
-      // 3. Navigate to Home after successful post creation
+      // 3. Create notifications for all users
+      await createNotificationForAllUsers(postRef.id);
+
+      // 4. Navigate to Home after successful post creation
       Alert.alert('Success', 'Post published successfully.');
       navigation.dispatch(StackActions.popToTop());
       navigation.navigate('Home');
@@ -68,7 +99,7 @@ const MediaPreviewScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={{uri: media.uri}} style={styles.media} />
+      <Image source={{ uri: media.uri }} style={styles.media} />
       <TextInput
         placeholder="Write a caption..."
         style={styles.captionInput}
