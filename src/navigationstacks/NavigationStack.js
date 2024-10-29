@@ -11,6 +11,7 @@ import SearchScreen from '../screens/SearchScreen';
 import AddPostStack from './AddPostStack';
 import NotificationsScreen from '../screens/NotificationScreen';
 import ProfileScreenStack from './ProfileScreenStack';
+import FriendProfile from '../screens/FriendProfile';
 
 // Stack and Tab Navigators
 const Stack = createStackNavigator();

@@ -3,16 +3,14 @@ import {
   FlatList,
   StyleSheet,
   View,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import ProfileHeader from '../components/ProfileHeader';
 import PostGrid from '../components/PostGrid';
-import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 
-const ProfileListHeader = ({userProfile, handleLogout, isCurrentUser}) => (
+const ProfileListHeader = ({userProfile}) => (
   <View>
     <ProfileHeader
       displayName={userProfile.displayName}
@@ -21,18 +19,17 @@ const ProfileListHeader = ({userProfile, handleLogout, isCurrentUser}) => (
       followerCount={userProfile.followerCount}
       followingCount={userProfile.followingCount}
       bio={userProfile.bio}
-      isCurrentUser={isCurrentUser}
-      handleLogout={handleLogout}
     />
   </View>
 );
 
-const ProfileScreen = () => {
+const FriendProfile = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const route = useRoute();
 
-  const userId = auth().currentUser?.uid;
+  const userId = route.params?.userId;
 
   const fetchUserProfile = async () => {
     try {
@@ -83,16 +80,6 @@ const ProfileScreen = () => {
     }, [userId]),
   );
 
-  const handleLogout = async () => {
-    try {
-      await auth().signOut();
-      Alert.alert('Logged Out', 'You have been logged out successfully.');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      Alert.alert('Logout Error', 'An error occurred while logging out.');
-    }
-  };
-
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -109,13 +96,7 @@ const ProfileScreen = () => {
         numColumns={3}
         renderItem={({item}) => <PostGrid post={item} />}
         ListHeaderComponent={
-          userProfile && (
-            <ProfileListHeader
-              userProfile={userProfile}
-              handleLogout={handleLogout}
-              isCurrentUser={true}
-            />
-          )
+          userProfile && <ProfileListHeader userProfile={userProfile} />
         }
         contentContainerStyle={{paddingBottom: 20}}
       />
@@ -135,4 +116,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen;
+export default FriendProfile;

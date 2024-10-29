@@ -10,13 +10,10 @@ const ProfileHeader = ({
   followerCount,
   followingCount,
   bio,
-  isCurrentUser,
-  handleLogout,
+  isCurrentUser = false,
+  handleLogout = () => {},
 }) => {
   const navigation = useNavigation();
-
-  console.log('isCurrentUser', isCurrentUser)
-
   return (
     <View style={styles.container}>
       {/* Profile Picture */}
@@ -132,7 +129,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 24,
     textAlign: 'center',
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   },
   bio: {
     marginTop: 5,

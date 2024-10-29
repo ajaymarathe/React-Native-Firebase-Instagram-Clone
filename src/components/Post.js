@@ -40,7 +40,7 @@ const Post = ({
   };
 
   const handleNavigateToProfile = () => {
-    navigation.navigate('ProfileScreen', {userId});
+    navigation.navigate('FriendProfile', {userId});
   };
   // Fetch comments from Firestore
   useEffect(() => {
