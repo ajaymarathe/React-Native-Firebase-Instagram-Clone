@@ -39,8 +39,14 @@ const Post = ({
     modalizeRef.current?.open();
   };
 
+  const currentUserId = auth().currentUser?.uid;
+
   const handleNavigateToProfile = () => {
-    navigation.navigate('FriendProfile', {userId});
+    if (currentUserId === userId) {
+      navigation.navigate('Profile', {userId});
+    } else {
+      navigation.navigate('FriendProfile', {userId});
+    }
   };
   // Fetch comments from Firestore
   useEffect(() => {
