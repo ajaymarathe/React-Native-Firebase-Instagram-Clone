@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Image, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute, StackActions } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
@@ -11,6 +11,7 @@ const MediaPreviewScreen = () => {
   const { media } = route.params;
   const [caption, setCaption] = useState('');
   const [loading, setLoading] = useState(false);
+  const [currentUserData, setCurrentUserData] = useState(null);
 
   // Function to upload media to Firebase Storage
   const uploadMedia = async (mediaUri) => {
@@ -24,10 +25,33 @@ const MediaPreviewScreen = () => {
     return await reference.getDownloadURL();
   };
 
+  // Fetch current user's data from Firestore
+  useEffect(() => {
+    const fetchCurrentUserData = async () => {
+      const user = auth().currentUser;
+      if (!user) {
+        return;
+      }
+
+      try {
+        const userDoc = await firestore().collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          setCurrentUserData({
+            displayName: userDoc.data().displayName || 'Unknown User',
+            photoURL: userDoc.data().profilePicture || '',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching current user data:', error);
+      }
+    };
+
+    fetchCurrentUserData();
+  }, []);
+
   // Function to create a notification for all users
   const createNotificationForAllUsers = async (postId) => {
-    const user = auth().currentUser;
-    if (!user) {return;}
+    if (!currentUserData) return;
 
     try {
       const usersSnapshot = await firestore().collection('users').get();
@@ -36,13 +60,13 @@ const MediaPreviewScreen = () => {
       usersSnapshot.forEach((userDoc) => {
         const notificationRef = firestore().collection('notifications').doc();
         notificationsBatch.set(notificationRef, {
-          userId: userDoc.id, // Notification for each user's userId
-          senderId: user.uid,
+          userId: userDoc.id,
+          senderId: auth().currentUser.uid,
           postId: postId,
-          message: `${user.displayName} created a new post`,
+          message: `${currentUserData.displayName} created a new post`,
           type: 'post',
           createdAt: firestore.FieldValue.serverTimestamp(),
-          avatar: user.photoURL || '',
+          avatar: currentUserData.photoURL,
         });
       });
 
